@@ -1,0 +1,704 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>DRAFT --- </title>
+    <script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+  </head>
+  <body style="max-width:611px; margin: 0 auto; background-color: rgb(40,36,100);">
+
+<div id="scroll">
+  <div class="svgBox scroll__graphic" id="svgBox1">
+    <span id="svg1-loading" class="svg-loading" style="color:white; padding:20px;">Loading...</span>
+    <svg id="svg1" height="7500"></svg>
+  </div>
+
+  <div id="svg1-fixed-header">
+    <div class="svg-left">
+      Standard Time
+    </div>
+    <div class="svg-right">
+      Daylight Time
+    </div>
+  </div>
+
+  <div class="scroll__text">
+    <div class="step" id="before-freezestep">
+
+    </div>
+    <div class="step" id="freezestep">
+
+    </div>
+    <div class="step" id="after-freezestep">
+
+    </div>
+  </div>
+</div>
+
+    <style media="screen">
+      .scroll__text {
+        position: absolute;
+        left:0;
+        top:0;
+        right: 0;
+      }
+      .step {
+        width: 100%;
+        height: 800px;
+        /* background-color: rgba(255,0,0,0.4); */
+        z-index: -1000;
+        /* border-top: 2px solid red; */
+        box-sizing: border-box;
+      }
+      #before-freezestep {
+        height: 2364px;
+      }
+      #freezestep {
+        height:4000px;
+      }
+    </style>
+
+    <style media="screen">
+      #svg1-fixed-header {
+        position: fixed;
+        top: 0;
+        right: 0;
+        left: 0;
+        color: white;
+        font-family: 'Muli', 'Arial', sans-serif;
+        font-weight: bold;
+        background-color: rgb(40,36,100); /*rgba(0,0,0,0.1);*/
+      }
+      .svg-left {
+        position: relative;
+        width: 50%;
+        box-sizing: border-box;
+        float: left;
+        padding:5px 25px;
+        text-align: right;
+      }
+      .svg-right {
+        position: relative;
+        width: 50%;
+        box-sizing: border-box;
+        float: left;
+        padding:5px 25px;
+        text-align: left;
+      }
+      .svgBox {
+        width: 100%;
+        font-family: 'Muli', 'Arial', sans-serif;
+      }
+      .svgBox.sticky {
+        position: fixed;
+      }
+      .chart-area {
+        opacity: 0.8;
+        fill: none;
+      }
+      path.domain {
+        display: none;
+      }
+      g.tick line {
+        opacity: 0.3;
+        stroke: white;
+        stroke-width: 2;
+      }
+      .pathtext {
+        /* font-size: 125%; */
+        /* letter-spacing: 2px; */
+        fill: white;
+      }
+      .const {
+        opacity: 0;
+      }
+      .pathtext textPath {
+        opacity: 0;
+      }
+
+      .chart-area.night {
+        fill: rgb(40,36,100);
+      }
+      .chart-area.daylight {
+        opacity: 0;
+        fill: rgb(253, 184, 19);
+      }
+
+      g.tick text {
+        fill: white;
+        font-family: 'Muli', 'Arial', sans-serif;
+      }
+
+      g.tick.hours text {
+        font-size: 1.5em;
+        font-weight: bold;
+      }
+
+      g.tick.months text {
+        font-weight: bold;
+      }
+
+      #thisdoesntexist text {
+        /* display:inline-block; */
+        -webkit-transform:scale(2,1); /* Safari and Chrome */
+        -moz-transform:scale(2,1); /* Firefox */
+        -ms-transform:scale(2,1); /* IE 9 */
+        -o-transform:scale(2,1); /* Opera */
+        transform:scale(2,1); /* W3C */
+      }
+
+    </style>
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.12.0/d3.min.js"></script>
+    <script src='https://unpkg.com/scrollama'></script>
+
+    <script type="text/javascript">
+      // Set graph height and margins. Width is 100% of holding container
+      var customHeight = 7500;
+      var customMargins = {top: 40, right: 0, bottom: 40, left: 0};
+      var data = [
+        {"standard_time":null,"date":"2018-11-01","sunrise":"7:41","sunset":"18:45","new_sunrise":"7:41","new_sunset":"18:45"},
+        {"standard_time":null,"date":"2018-11-02","sunrise":"7:41","sunset":"18:44","new_sunrise":"7:41","new_sunset":"18:44"},
+        {"standard_time":null,"date":"2018-11-03","sunrise":"7:42","sunset":"18:44","new_sunrise":"7:42","new_sunset":"18:44"},
+        {"standard_time":1,"date":"2018-11-04","sunrise":"6:43","sunset":"17:43","new_sunrise":"7:43","new_sunset":"18:43"},
+        {"standard_time":1,"date":"2018-11-05","sunrise":"6:43","sunset":"17:42","new_sunrise":"7:43","new_sunset":"18:42"},
+        {"standard_time":1,"date":"2018-11-06","sunrise":"6:44","sunset":"17:42","new_sunrise":"7:44","new_sunset":"18:42"},
+        {"standard_time":1,"date":"2018-11-07","sunrise":"6:45","sunset":"17:41","new_sunrise":"7:45","new_sunset":"18:41"},
+        {"standard_time":1,"date":"2018-11-08","sunrise":"6:46","sunset":"17:40","new_sunrise":"7:46","new_sunset":"18:40"},
+        {"standard_time":1,"date":"2018-11-09","sunrise":"6:46","sunset":"17:40","new_sunrise":"7:46","new_sunset":"18:40"},
+        {"standard_time":1,"date":"2018-11-10","sunrise":"6:47","sunset":"17:39","new_sunrise":"7:47","new_sunset":"18:39"},
+        {"standard_time":1,"date":"2018-11-11","sunrise":"6:48","sunset":"17:39","new_sunrise":"7:48","new_sunset":"18:39"},
+        {"standard_time":1,"date":"2018-11-12","sunrise":"6:49","sunset":"17:38","new_sunrise":"7:49","new_sunset":"18:38"},
+        {"standard_time":1,"date":"2018-11-13","sunrise":"6:49","sunset":"17:38","new_sunrise":"7:49","new_sunset":"18:38"},
+        {"standard_time":1,"date":"2018-11-14","sunrise":"6:50","sunset":"17:37","new_sunrise":"7:50","new_sunset":"18:37"},
+        {"standard_time":1,"date":"2018-11-15","sunrise":"6:51","sunset":"17:37","new_sunrise":"7:51","new_sunset":"18:37"},
+        {"standard_time":1,"date":"2018-11-16","sunrise":"6:52","sunset":"17:36","new_sunrise":"7:52","new_sunset":"18:36"},
+        {"standard_time":1,"date":"2018-11-17","sunrise":"6:52","sunset":"17:36","new_sunrise":"7:52","new_sunset":"18:36"},
+        {"standard_time":1,"date":"2018-11-18","sunrise":"6:53","sunset":"17:36","new_sunrise":"7:53","new_sunset":"18:36"},
+        {"standard_time":1,"date":"2018-11-19","sunrise":"6:54","sunset":"17:35","new_sunrise":"7:54","new_sunset":"18:35"},
+        {"standard_time":1,"date":"2018-11-20","sunrise":"6:55","sunset":"17:35","new_sunrise":"7:55","new_sunset":"18:35"},
+        {"standard_time":1,"date":"2018-11-21","sunrise":"6:56","sunset":"17:35","new_sunrise":"7:56","new_sunset":"18:35"},
+        {"standard_time":1,"date":"2018-11-22","sunrise":"6:56","sunset":"17:34","new_sunrise":"7:56","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-11-23","sunrise":"6:57","sunset":"17:34","new_sunrise":"7:57","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-11-24","sunrise":"6:58","sunset":"17:34","new_sunrise":"7:58","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-11-25","sunrise":"6:59","sunset":"17:34","new_sunrise":"7:59","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-11-26","sunrise":"6:59","sunset":"17:34","new_sunrise":"7:59","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-11-27","sunrise":"7:00","sunset":"17:34","new_sunrise":"8:00","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-11-28","sunrise":"7:01","sunset":"17:34","new_sunrise":"8:01","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-11-29","sunrise":"7:02","sunset":"17:33","new_sunrise":"8:02","new_sunset":"18:33"},
+        {"standard_time":1,"date":"2018-11-30","sunrise":"7:03","sunset":"17:33","new_sunrise":"8:03","new_sunset":"18:33"},
+        {"standard_time":1,"date":"2018-12-01","sunrise":"7:03","sunset":"17:33","new_sunrise":"8:03","new_sunset":"18:33"},
+        {"standard_time":1,"date":"2018-12-02","sunrise":"7:04","sunset":"17:33","new_sunrise":"8:04","new_sunset":"18:33"},
+        {"standard_time":1,"date":"2018-12-03","sunrise":"7:05","sunset":"17:33","new_sunrise":"8:05","new_sunset":"18:33"},
+        {"standard_time":1,"date":"2018-12-04","sunrise":"7:06","sunset":"17:34","new_sunrise":"8:06","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-12-05","sunrise":"7:06","sunset":"17:34","new_sunrise":"8:06","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-12-06","sunrise":"7:07","sunset":"17:34","new_sunrise":"8:07","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-12-07","sunrise":"7:08","sunset":"17:34","new_sunrise":"8:08","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-12-08","sunrise":"7:08","sunset":"17:34","new_sunrise":"8:08","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-12-09","sunrise":"7:09","sunset":"17:34","new_sunrise":"8:09","new_sunset":"18:34"},
+        {"standard_time":1,"date":"2018-12-10","sunrise":"7:10","sunset":"17:35","new_sunrise":"8:10","new_sunset":"18:35"},
+        {"standard_time":1,"date":"2018-12-11","sunrise":"7:10","sunset":"17:35","new_sunrise":"8:10","new_sunset":"18:35"},
+        {"standard_time":1,"date":"2018-12-12","sunrise":"7:11","sunset":"17:35","new_sunrise":"8:11","new_sunset":"18:35"},
+        {"standard_time":1,"date":"2018-12-13","sunrise":"7:12","sunset":"17:35","new_sunrise":"8:12","new_sunset":"18:35"},
+        {"standard_time":1,"date":"2018-12-14","sunrise":"7:12","sunset":"17:36","new_sunrise":"8:12","new_sunset":"18:36"},
+        {"standard_time":1,"date":"2018-12-15","sunrise":"7:13","sunset":"17:36","new_sunrise":"8:13","new_sunset":"18:36"},
+        {"standard_time":1,"date":"2018-12-16","sunrise":"7:14","sunset":"17:36","new_sunrise":"8:14","new_sunset":"18:36"},
+        {"standard_time":1,"date":"2018-12-17","sunrise":"7:14","sunset":"17:37","new_sunrise":"8:14","new_sunset":"18:37"},
+        {"standard_time":1,"date":"2018-12-18","sunrise":"7:15","sunset":"17:37","new_sunrise":"8:15","new_sunset":"18:37"},
+        {"standard_time":1,"date":"2018-12-19","sunrise":"7:15","sunset":"17:38","new_sunrise":"8:15","new_sunset":"18:38"},
+        {"standard_time":1,"date":"2018-12-20","sunrise":"7:16","sunset":"17:38","new_sunrise":"8:16","new_sunset":"18:38"},
+        {"standard_time":1,"date":"2018-12-21","sunrise":"7:16","sunset":"17:39","new_sunrise":"8:16","new_sunset":"18:39"},
+        {"standard_time":1,"date":"2018-12-22","sunrise":"7:17","sunset":"17:39","new_sunrise":"8:17","new_sunset":"18:39"},
+        {"standard_time":1,"date":"2018-12-23","sunrise":"7:17","sunset":"17:40","new_sunrise":"8:17","new_sunset":"18:40"},
+        {"standard_time":1,"date":"2018-12-24","sunrise":"7:18","sunset":"17:40","new_sunrise":"8:18","new_sunset":"18:40"},
+        {"standard_time":1,"date":"2018-12-25","sunrise":"7:18","sunset":"17:41","new_sunrise":"8:18","new_sunset":"18:41"},
+        {"standard_time":1,"date":"2018-12-26","sunrise":"7:19","sunset":"17:41","new_sunrise":"8:19","new_sunset":"18:41"},
+        {"standard_time":1,"date":"2018-12-27","sunrise":"7:19","sunset":"17:42","new_sunrise":"8:19","new_sunset":"18:42"},
+        {"standard_time":1,"date":"2018-12-28","sunrise":"7:19","sunset":"17:43","new_sunrise":"8:19","new_sunset":"18:43"},
+        {"standard_time":1,"date":"2018-12-29","sunrise":"7:20","sunset":"17:43","new_sunrise":"8:20","new_sunset":"18:43"},
+        {"standard_time":1,"date":"2018-12-30","sunrise":"7:20","sunset":"17:44","new_sunrise":"8:20","new_sunset":"18:44"},
+        {"standard_time":1,"date":"2018-12-31","sunrise":"7:20","sunset":"17:45","new_sunrise":"8:20","new_sunset":"18:45"},
+        {"standard_time":1,"date":"2019-01-01","sunrise":"7:21","sunset":"17:45","new_sunrise":"8:21","new_sunset":"18:45"},
+        {"standard_time":1,"date":"2019-01-02","sunrise":"7:21","sunset":"17:46","new_sunrise":"8:21","new_sunset":"18:46"},
+        {"standard_time":1,"date":"2019-01-03","sunrise":"7:21","sunset":"17:47","new_sunrise":"8:21","new_sunset":"18:47"},
+        {"standard_time":1,"date":"2019-01-04","sunrise":"7:21","sunset":"17:48","new_sunrise":"8:21","new_sunset":"18:48"},
+        {"standard_time":1,"date":"2019-01-05","sunrise":"7:22","sunset":"17:48","new_sunrise":"8:22","new_sunset":"18:48"},
+        {"standard_time":1,"date":"2019-01-06","sunrise":"7:22","sunset":"17:49","new_sunrise":"8:22","new_sunset":"18:49"},
+        {"standard_time":1,"date":"2019-01-07","sunrise":"7:22","sunset":"17:50","new_sunrise":"8:22","new_sunset":"18:50"},
+        {"standard_time":1,"date":"2019-01-08","sunrise":"7:22","sunset":"17:51","new_sunrise":"8:22","new_sunset":"18:51"},
+        {"standard_time":1,"date":"2019-01-09","sunrise":"7:22","sunset":"17:51","new_sunrise":"8:22","new_sunset":"18:51"},
+        {"standard_time":1,"date":"2019-01-10","sunrise":"7:22","sunset":"17:52","new_sunrise":"8:22","new_sunset":"18:52"},
+        {"standard_time":1,"date":"2019-01-11","sunrise":"7:22","sunset":"17:53","new_sunrise":"8:22","new_sunset":"18:53"},
+        {"standard_time":1,"date":"2019-01-12","sunrise":"7:22","sunset":"17:54","new_sunrise":"8:22","new_sunset":"18:54"},
+        {"standard_time":1,"date":"2019-01-13","sunrise":"7:22","sunset":"17:54","new_sunrise":"8:22","new_sunset":"18:54"},
+        {"standard_time":1,"date":"2019-01-14","sunrise":"7:22","sunset":"17:55","new_sunrise":"8:22","new_sunset":"18:55"},
+        {"standard_time":1,"date":"2019-01-15","sunrise":"7:22","sunset":"17:56","new_sunrise":"8:22","new_sunset":"18:56"},
+        {"standard_time":1,"date":"2019-01-16","sunrise":"7:22","sunset":"17:57","new_sunrise":"8:22","new_sunset":"18:57"},
+        {"standard_time":1,"date":"2019-01-17","sunrise":"7:22","sunset":"17:58","new_sunrise":"8:22","new_sunset":"18:58"},
+        {"standard_time":1,"date":"2019-01-18","sunrise":"7:21","sunset":"17:58","new_sunrise":"8:21","new_sunset":"18:58"},
+        {"standard_time":1,"date":"2019-01-19","sunrise":"7:21","sunset":"17:59","new_sunrise":"8:21","new_sunset":"18:59"},
+        {"standard_time":1,"date":"2019-01-20","sunrise":"7:21","sunset":"18:00","new_sunrise":"8:21","new_sunset":"19:00"},
+        {"standard_time":1,"date":"2019-01-21","sunrise":"7:21","sunset":"18:01","new_sunrise":"8:21","new_sunset":"19:01"},
+        {"standard_time":1,"date":"2019-01-22","sunrise":"7:20","sunset":"18:02","new_sunrise":"8:20","new_sunset":"19:02"},
+        {"standard_time":1,"date":"2019-01-23","sunrise":"7:20","sunset":"18:03","new_sunrise":"8:20","new_sunset":"19:03"},
+        {"standard_time":1,"date":"2019-01-24","sunrise":"7:20","sunset":"18:03","new_sunrise":"8:20","new_sunset":"19:03"},
+        {"standard_time":1,"date":"2019-01-25","sunrise":"7:19","sunset":"18:04","new_sunrise":"8:19","new_sunset":"19:04"},
+        {"standard_time":1,"date":"2019-01-26","sunrise":"7:19","sunset":"18:05","new_sunrise":"8:19","new_sunset":"19:05"},
+        {"standard_time":1,"date":"2019-01-27","sunrise":"7:19","sunset":"18:06","new_sunrise":"8:19","new_sunset":"19:06"},
+        {"standard_time":1,"date":"2019-01-28","sunrise":"7:18","sunset":"18:07","new_sunrise":"8:18","new_sunset":"19:07"},
+        {"standard_time":1,"date":"2019-01-29","sunrise":"7:18","sunset":"18:07","new_sunrise":"8:18","new_sunset":"19:07"},
+        {"standard_time":1,"date":"2019-01-30","sunrise":"7:17","sunset":"18:08","new_sunrise":"8:17","new_sunset":"19:08"},
+        {"standard_time":1,"date":"2019-01-31","sunrise":"7:17","sunset":"18:09","new_sunrise":"8:17","new_sunset":"19:09"},
+        {"standard_time":1,"date":"2019-02-01","sunrise":"7:16","sunset":"18:10","new_sunrise":"8:16","new_sunset":"19:10"},
+        {"standard_time":1,"date":"2019-02-02","sunrise":"7:16","sunset":"18:11","new_sunrise":"8:16","new_sunset":"19:11"},
+        {"standard_time":1,"date":"2019-02-03","sunrise":"7:15","sunset":"18:11","new_sunrise":"8:15","new_sunset":"19:11"},
+        {"standard_time":1,"date":"2019-02-04","sunrise":"7:15","sunset":"18:12","new_sunrise":"8:15","new_sunset":"19:12"},
+        {"standard_time":1,"date":"2019-02-05","sunrise":"7:14","sunset":"18:13","new_sunrise":"8:14","new_sunset":"19:13"},
+        {"standard_time":1,"date":"2019-02-06","sunrise":"7:13","sunset":"18:14","new_sunrise":"8:13","new_sunset":"19:14"},
+        {"standard_time":1,"date":"2019-02-07","sunrise":"7:13","sunset":"18:15","new_sunrise":"8:13","new_sunset":"19:15"},
+        {"standard_time":1,"date":"2019-02-08","sunrise":"7:12","sunset":"18:15","new_sunrise":"8:12","new_sunset":"19:15"},
+        {"standard_time":1,"date":"2019-02-09","sunrise":"7:11","sunset":"18:16","new_sunrise":"8:11","new_sunset":"19:16"},
+        {"standard_time":1,"date":"2019-02-10","sunrise":"7:11","sunset":"18:17","new_sunrise":"8:11","new_sunset":"19:17"},
+        {"standard_time":1,"date":"2019-02-11","sunrise":"7:10","sunset":"18:18","new_sunrise":"8:10","new_sunset":"19:18"},
+        {"standard_time":1,"date":"2019-02-12","sunrise":"7:09","sunset":"18:18","new_sunrise":"8:09","new_sunset":"19:18"},
+        {"standard_time":1,"date":"2019-02-13","sunrise":"7:08","sunset":"18:19","new_sunrise":"8:08","new_sunset":"19:19"},
+        {"standard_time":1,"date":"2019-02-14","sunrise":"7:08","sunset":"18:20","new_sunrise":"8:08","new_sunset":"19:20"},
+        {"standard_time":1,"date":"2019-02-15","sunrise":"7:07","sunset":"18:20","new_sunrise":"8:07","new_sunset":"19:20"},
+        {"standard_time":1,"date":"2019-02-16","sunrise":"7:06","sunset":"18:21","new_sunrise":"8:06","new_sunset":"19:21"},
+        {"standard_time":1,"date":"2019-02-17","sunrise":"7:05","sunset":"18:22","new_sunrise":"8:05","new_sunset":"19:22"},
+        {"standard_time":1,"date":"2019-02-18","sunrise":"7:04","sunset":"18:23","new_sunrise":"8:04","new_sunset":"19:23"},
+        {"standard_time":1,"date":"2019-02-19","sunrise":"7:03","sunset":"18:23","new_sunrise":"8:03","new_sunset":"19:23"},
+        {"standard_time":1,"date":"2019-02-20","sunrise":"7:02","sunset":"18:24","new_sunrise":"8:02","new_sunset":"19:24"},
+        {"standard_time":1,"date":"2019-02-21","sunrise":"7:02","sunset":"18:25","new_sunrise":"8:02","new_sunset":"19:25"},
+        {"standard_time":1,"date":"2019-02-22","sunrise":"7:01","sunset":"18:25","new_sunrise":"8:01","new_sunset":"19:25"},
+        {"standard_time":1,"date":"2019-02-23","sunrise":"7:00","sunset":"18:26","new_sunrise":"8:00","new_sunset":"19:26"},
+        {"standard_time":1,"date":"2019-02-24","sunrise":"6:59","sunset":"18:27","new_sunrise":"7:59","new_sunset":"19:27"},
+        {"standard_time":1,"date":"2019-02-25","sunrise":"6:58","sunset":"18:27","new_sunrise":"7:58","new_sunset":"19:27"},
+        {"standard_time":1,"date":"2019-02-26","sunrise":"6:57","sunset":"18:28","new_sunrise":"7:57","new_sunset":"19:28"},
+        {"standard_time":1,"date":"2019-02-27","sunrise":"6:56","sunset":"18:28","new_sunrise":"7:56","new_sunset":"19:28"},
+        {"standard_time":1,"date":"2019-02-28","sunrise":"6:55","sunset":"18:29","new_sunrise":"7:55","new_sunset":"19:29"},
+        {"standard_time":1,"date":"2019-03-01","sunrise":"6:54","sunset":"18:30","new_sunrise":"7:54","new_sunset":"19:30"},
+        {"standard_time":1,"date":"2019-03-02","sunrise":"6:53","sunset":"18:30","new_sunrise":"7:53","new_sunset":"19:30"},
+        {"standard_time":1,"date":"2019-03-03","sunrise":"6:52","sunset":"18:31","new_sunrise":"7:52","new_sunset":"19:31"},
+        {"standard_time":1,"date":"2019-03-04","sunrise":"6:51","sunset":"18:32","new_sunrise":"7:51","new_sunset":"19:32"},
+        {"standard_time":1,"date":"2019-03-05","sunrise":"6:50","sunset":"18:32","new_sunrise":"7:50","new_sunset":"19:32"},
+        {"standard_time":1,"date":"2019-03-06","sunrise":"6:49","sunset":"18:33","new_sunrise":"7:49","new_sunset":"19:33"},
+        {"standard_time":1,"date":"2019-03-07","sunrise":"6:48","sunset":"18:33","new_sunrise":"7:48","new_sunset":"19:33"},
+        {"standard_time":1,"date":"2019-03-08","sunrise":"6:47","sunset":"18:34","new_sunrise":"7:47","new_sunset":"19:34"},
+        {"standard_time":1,"date":"2019-03-09","sunrise":"6:45","sunset":"18:35","new_sunrise":"7:45","new_sunset":"19:35"},
+        {"standard_time":1,"date":"2019-03-10","sunrise":"6:44","sunset":"18:35","new_sunrise":"7:44","new_sunset":"19:35"},
+        {"standard_time":null,"date":"2019-03-11","sunrise":"7:43","sunset":"19:36","new_sunrise":"7:43","new_sunset":"19:36"},
+        {"standard_time":null,"date":"2019-03-12","sunrise":"7:42","sunset":"19:36","new_sunrise":"7:42","new_sunset":"19:36"},
+        {"standard_time":null,"date":"2019-03-13","sunrise":"7:41","sunset":"19:37","new_sunrise":"7:41","new_sunset":"19:37"},
+        {"standard_time":null,"date":"2019-03-14","sunrise":"7:40","sunset":"19:37","new_sunrise":"7:40","new_sunset":"19:37"},
+        {"standard_time":null,"date":"2019-03-15","sunrise":"7:39","sunset":"19:38","new_sunrise":"7:39","new_sunset":"19:38"},
+        {"standard_time":null,"date":"2019-03-16","sunrise":"7:38","sunset":"19:38","new_sunrise":"7:38","new_sunset":"19:38"},
+        {"standard_time":null,"date":"2019-03-17","sunrise":"7:37","sunset":"19:39","new_sunrise":"7:37","new_sunset":"19:39"},
+        {"standard_time":null,"date":"2019-03-18","sunrise":"7:35","sunset":"19:40","new_sunrise":"7:35","new_sunset":"19:40"},
+        {"standard_time":null,"date":"2019-03-19","sunrise":"7:34","sunset":"19:40","new_sunrise":"7:34","new_sunset":"19:40"},
+        {"standard_time":null,"date":"2019-03-20","sunrise":"7:33","sunset":"19:41","new_sunrise":"7:33","new_sunset":"19:41"},
+        {"standard_time":null,"date":"2019-03-21","sunrise":"7:32","sunset":"19:41","new_sunrise":"7:32","new_sunset":"19:41"},
+        {"standard_time":null,"date":"2019-03-22","sunrise":"7:31","sunset":"19:42","new_sunrise":"7:31","new_sunset":"19:42"},
+        {"standard_time":null,"date":"2019-03-23","sunrise":"7:30","sunset":"19:42","new_sunrise":"7:30","new_sunset":"19:42"},
+        {"standard_time":null,"date":"2019-03-24","sunrise":"7:29","sunset":"19:43","new_sunrise":"7:29","new_sunset":"19:43"},
+        {"standard_time":null,"date":"2019-03-25","sunrise":"7:28","sunset":"19:43","new_sunrise":"7:28","new_sunset":"19:43"},
+        {"standard_time":null,"date":"2019-03-26","sunrise":"7:26","sunset":"19:44","new_sunrise":"7:26","new_sunset":"19:44"},
+        {"standard_time":null,"date":"2019-03-27","sunrise":"7:25","sunset":"19:44","new_sunrise":"7:25","new_sunset":"19:44"},
+        {"standard_time":null,"date":"2019-03-28","sunrise":"7:24","sunset":"19:45","new_sunrise":"7:24","new_sunset":"19:45"},
+        {"standard_time":null,"date":"2019-03-29","sunrise":"7:23","sunset":"19:46","new_sunrise":"7:23","new_sunset":"19:46"},
+        {"standard_time":null,"date":"2019-03-30","sunrise":"7:22","sunset":"19:46","new_sunrise":"7:22","new_sunset":"19:46"},
+        {"standard_time":null,"date":"2019-03-31","sunrise":"7:21","sunset":"19:47","new_sunrise":"7:21","new_sunset":"19:47"}
+      ];
+
+      $(document).ready(function(){
+        $(window).trigger('resize');
+      });
+
+      $(window).on('resize', function(){
+        $('#svg1').empty();
+        var boundWidth = d3.select("#svgBox1").node().getBoundingClientRect().width;
+        d3.select("#svgBox1").select("svg").attr("width",boundWidth).attr("height",customHeight).style("margin","0px");
+
+        var svg = d3.select("#svg1"),
+        margin = customMargins,
+        width = boundWidth - margin.left - margin.right,
+        height = +svg.attr("height") - margin.top - margin.bottom,
+        g = svg.append("g").attr("id","pane").attr("transform", "translate(" + margin.left +"," + margin.top + ")");
+
+
+        var group = {
+          left: g.append("g").attr("id","pane-left").attr("transform", "scale(0.45 1)"),
+          right: g.append("g").attr("id","pane-right").attr("transform", "scale(0.45 1) translate("+(11/9)*width+")"),
+        };
+
+        var parseTime = d3.timeParse("%Y-%m-%d");
+        var parseHours = d3.timeParse("%H:%M");
+
+        var xScale = d3.scaleTime().domain([parseTime(data[0].date),parseTime(data[data.length-1].date)]).range([0, width]);
+        var yScale = d3.scaleTime().domain([parseHours('0:00'),parseHours('23:59')]).range([0, height]);
+
+
+        $('.svg-loading').remove();
+
+
+        // CENTER LINE
+
+        // g.append('line')
+        //   .attr('x1',width/2)
+        //   .attr('x2',width/2)
+        //   .attr('y1',0)
+        //   .attr('y2',height)
+        //   .attr('stroke-width','4')
+        //   .attr('stroke','white');
+
+        function drawArea(y0, y1, theClass, side) {
+          var area = d3.area()
+          .x(function(d) {
+            return xScale(parseTime(d.date));
+          })
+          .y0(function(d) {
+            if (y0.indexOf('const') == 0) {
+              newY0 = y0.substring(y0.indexOf('-')+1);
+              return yScale(parseHours(newY0));
+            }
+            else {
+              return yScale(parseHours(d[y0]));
+            }
+          })
+          .y1(function(d) {
+            if (y1.indexOf('const') == 0) {
+              newY1 = y1.substring(y1.indexOf('-')+1);
+              return yScale(parseHours(newY1));
+            }
+            else {
+              return yScale(parseHours(d[y1]));
+            }
+          });
+
+          var currentArea = group[side].append("path")
+          .datum(data)
+          .attr("class", "chart-area " + theClass)
+          .attr("d", area);
+        }
+
+        function drawLine(y) {
+          var line = d3.line()
+            .x(function(d) {
+              return xScale(parseTime(d.date));
+            })
+            .y(function(d) {
+              return yScale(parseHours(d[y]));
+            });
+
+          g.append('path')
+          .datum(data)
+          .attr('stroke-width', 3)
+          .attr('fill','none')
+          .attr('id', 'path-'+y)
+          .attr('class', 'path path-'+y)
+          .attr('d', line);
+        }
+
+        function drawConst(name, y) {
+          var line = d3.line()
+            .x(function(d) {
+              return xScale(parseTime(d.date));
+            })
+            .y(function(d) {
+              return yScale(parseHours(y));
+            });
+
+          g.append('path')
+          .datum(data)
+          .attr('stroke','white')
+          .attr('stroke-width', 3)
+          .attr('fill','none')
+          .attr('id', 'path-'+name)
+          .attr('class', 'const const-'+name)
+          .attr('d', line);
+        }
+
+        drawArea('const-0:00','sunrise','night morning left','left');
+        drawArea('sunrise','sunset','daylight left','left');
+        drawArea('sunset','const-23:59','night evening left','left');
+
+        drawArea('const-0:00','new_sunrise','night morning left','right');
+        drawArea('new_sunrise','new_sunset','daylight right','right');
+        drawArea('new_sunset','const-23:59','night evening left','right');
+
+        drawLine('sunrise');
+        drawLine('new_sunrise');
+        drawLine('sunset');
+        drawLine('new_sunset');
+
+
+        var labelTimes = [
+          {
+            name: 'hillsborough-elementary',
+            time: '7:40',
+            text: 'Hillsborough elementary schools',
+            dy: -7
+          }, {
+            name: 'hillsborough-high',
+            time: '8:30',
+            text: 'Hillsborough high schools',
+            dy: -7
+          }, {
+            name: 'pinellas-high',
+            time: '7:25',
+            text: 'Pinellas high schools (proposed)',
+            dy: -7
+          }, {
+            name: 'pinellas-elementary',
+            time: '7:35',
+            text: 'Pinellas elementary schools',
+            dy: -7
+          }
+        ];
+
+        for (var i = 0; i < labelTimes.length; i++) {
+          drawConst(labelTimes[i].name, labelTimes[i].time);
+
+          g.append('text')
+          .attr('class','pathtext')
+          .attr('dy', labelTimes[i].dy)
+          .append('textPath')
+          .attr('class','pathtext-'+labelTimes[i].name)
+          .attr('xlink:href','#path-'+labelTimes[i].name)
+          .style('text-anchor','middle')
+          .attr('startOffset','50%')
+          .text(labelTimes[i].text);
+
+
+        }
+
+        g.append('g')
+          .attr('class','tick hours')
+          .attr('transform', 'translate('+width/2+', 0)')
+          .call(d3.axisLeft(yScale).ticks(96).tickFormat(d3.timeFormat("%-I:%M")));
+
+        d3.selectAll('g.tick.hours g.tick text')
+          .attr('x',0)
+          .attr('text-anchor','middle');
+
+        for (var i = 0; i < 24; i++) {
+
+          axisHour = i+1;
+          axisTime = i + ':00';
+
+          group['left'].append('g')
+            .attr('class','tick months')
+            .attr('transform', 'translate(0,' + yScale(parseHours(axisTime)) + ')')
+            .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%b')).tickSize(height/24));
+
+          group['right'].append('g')
+            .attr('class','tick months')
+            .attr('transform', 'translate(0,' + yScale(parseHours(axisTime)) + ')')
+            .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%b')).tickSize(height/24));
+        }
+
+
+        function drawNote(noteText, noteTime) {
+          var text = d3.select('#pane-right').append('text')
+            .attr('class','svgNote')
+            .attr('fill','white')
+            .attr('x',5)
+            .attr('y',yScale(parseHours(noteTime)))
+            .text(noteText)
+            .attr('transform','scale(2.222,1) translate('+(width/(10*2.222))+',0)')
+            .attr('dy',0);
+          text.call(wrapText,(width*0.45)-35)
+            .call(addBackgroundBox, yScale(parseHours(noteTime)));
+        }
+
+        var notesData = [
+          // {
+          //   text: 'If Florida were to adopt year-round Daylight Saving Time, the sun would rise an hour later than normal between early November and early March.',
+          //   time: '6:30'
+          // }
+        ];
+
+        for (var i = 0; i < notesData.length; i++) {
+          drawNote(notesData[i].text, notesData[i].time);
+        }
+
+        d3.selectAll('g.tick.months g.tick text')
+        .attr('transform','translate('+(width/10)+',0) scale(2.222,1)')
+        .attr('dy',0);
+
+        // d3.selectAll('.svgNote')
+        //   .call(wrapText, (width*0.45)-35)
+        //   .call(addBackgroundBox);
+
+        // https://bl.ocks.org/mbostock/7555321 WRAPPING LONG LABELS
+
+        function addBackgroundBox(textbox, y) {
+          console.log(this);
+          // console.log(d3.this);
+            group.right.append('rect')
+              .attr('x', (width*.05))
+              .attr('y', y-(width*.05))
+              .attr('width', width*.9)
+              .attr('height', 100)
+              .attr('fill','none')
+              .attr('stroke','white');
+        }
+
+        function wrapText (text, width) {
+          text.each(function() {
+            var text = d3.select(this),
+                words = text.text().split(/\s+/).reverse(),
+                word,
+                line = [],
+                lineNumber = 0,
+                lineHeight = 1, // ems
+                y = text.attr("y"),
+                dy = 0.32,
+                tspan = text.text(null).append("tspan").attr("x", 0).attr("y", y).attr("dy", dy + "em");
+
+            while (word = words.pop()) {
+              line.push(word);
+              tspan.text(line.join(" "));
+              if (tspan.node().getComputedTextLength() > width) {
+                line.pop();
+                tspan.text(line.join(" "));
+                line = [word];
+                tspan = text.append("tspan").attr("x", 0).attr("y", y).attr("dy", ++lineNumber * lineHeight + dy + "em").text(word);
+              }
+            }
+          });
+        }
+
+      });
+
+    </script>
+    <!-- SCROLLAMA SCRIPT -->
+    <script type="text/javascript">
+  		var container = d3.select('#scroll');
+  		var text = container.select('.scroll__text');
+  		var step = text.selectAll('.step');
+      var freezeStep = $('#freezestep');
+
+
+      var revealElements = [
+        {
+          element: '.chart-area.daylight.left',
+          trigger: 0
+        },
+        {
+          element: '.chart-area.daylight.right',
+          trigger: 0.1
+        },{
+          element: '.pathtext-pinellas-high, .const-pinellas-high',
+          trigger: 0.2
+        }, {
+          element: '.pathtext-pinellas-elementary, .const-pinellas-elementary',
+          trigger: 0.4
+        }, {
+          element: '.pathtext-hillsborough-elementary, .const-hillsborough-elementary',
+          trigger: 0.6
+        }, {
+          element: '.pathtext-hillsborough-high, .const-hillsborough-high',
+          trigger: 0.8
+        }
+      ];
+
+
+      // initialize the scrollama
+  		var scroller = scrollama();
+
+  		// generic window resize listener event
+  		function handleResize() {
+        // scrollama event handlers
+
+  		}
+
+    	function handleStepEnter(response) {
+        if (response.index==$('#before-freezestep').prevAll().length) {
+          if (response.direction=='up') {
+            console.log('fire');
+            $('.scroll__graphic').css({'margin-top':'0','top':'0'});
+          }
+        }
+  			if (response.index==$('#freezestep').prevAll().length) {
+          if (response.direction=='down') {
+            height = $('#freezestep').offset().top - ($(window).height()/2);
+          }
+          else {
+            height = $('#after-freezestep').offset().top - ($(window).height()/2);
+          }
+          $('.scroll__graphic').addClass('sticky').css({'margin-top':'none','top':-height + 'px'});
+        }
+        else {
+          $('.scroll__graphic').removeClass('sticky')
+          if (response.index==$('#after-freezestep').prevAll().length && response.direction=='down') {
+            // console.log(-height + 'px');
+            height = $('#freezestep').outerHeight();
+            $('.scroll__graphic').css({'top':'0', 'margin-top':height + 'px'});
+          }
+        }
+  		}
+
+      function handleStepProgress(response) {
+  			if (response.index==$('#freezestep').prevAll().length) {
+          // console.log(response.progress);
+          // console.log();
+          for (var i = 0; i < revealElements.length; i++) {
+            console.log(response.progress, revealElements[i].trigger, revealElements[i].element);
+            if (response.progress>=revealElements[i].trigger) {
+              $(revealElements[i].element).css({'opacity':'1'});
+            }
+          }
+        }
+		  }
+
+
+  		function handleContainerEnter(response) {
+  			// response = { direction }
+
+  			// sticky the graphic (old school)
+  			// graphic.classed('is-fixed', true);
+  			// graphic.classed('is-bottom', false);
+  		}
+
+  		function handleContainerExit(response) {
+  			// response = { direction }
+
+  			// un-sticky the graphic, and pin to top/bottom of container
+  			// graphic.classed('is-fixed', false);
+  			// graphic.classed('is-bottom', response.direction === 'down');
+  		}
+
+
+      function init() {
+  			// 1. force a resize on load to ensure proper dimensions are sent to scrollama
+  			handleResize();
+
+  			// 2. setup the scroller passing options
+  			// this will also initialize trigger observations
+  			// 3. bind scrollama event handlers (this can be chained like below)
+  			scroller.setup({
+  				container: '#scroll',
+  				graphic: '.scroll__graphic',
+  				text: '.scroll__text',
+  				step: '.scroll__text .step',
+          progress: true,
+  				debug: false
+  			})
+  				.onStepEnter(handleStepEnter)
+          .onStepProgress(handleStepProgress)
+  				.onContainerEnter(handleContainerEnter)
+  				.onContainerExit(handleContainerExit);
+
+  			// setup resize event
+  			window.addEventListener('resize', handleResize);
+  		}
+
+  		// kick things off
+  		init();
+
+    </script>
+
+  </body>
+</html>
