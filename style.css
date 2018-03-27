@@ -1,0 +1,142 @@
+#article-content {
+  height: 10000px;
+  background-color: rgb(40,36,100);
+}
+
+.column {
+  max-width: 768px;
+  margin: 0 auto;
+  border-right: 1px solid black;
+}
+
+/* ACTUAL STYLES */
+
+#article-content div:not(.nobg, .step) {
+  background-color: rgb(40,36,100);
+}
+
+.svgBox {
+  width: 100%;
+  font-family: 'Muli', 'Arial', sans-serif;
+}
+.svgBox p {
+  font-family: Georgia, serif;
+}
+.svgBox.sticky {
+  position: fixed;
+}
+/* #svg1back {
+  fill: url(#nightGradient);
+} */
+.chart-area {
+  opacity: 0.8;
+  /* fill: none; */
+}
+path.domain {
+  /* display: none; */
+}
+g.tick line {
+  opacity: 0.3;
+  stroke: white;
+  stroke-width: 2;
+}
+.pathtext {
+  fill: white;
+}
+.const, .chart-area.daylight.new {
+  display: none;
+}
+.pathtext textPath {
+  display: none;
+}
+
+.chart-area.night {
+  /* fill: rgb(40,36,100); */
+  fill: none;
+}
+.chart-area.daylight {
+  display: none;
+  fill: rgb(253, 184, 19);
+  stroke: white;
+  stroke-width: 3;
+}
+.chart-area.daylight {
+  display: block;
+}
+
+g.tick.months text {
+  fill: white;
+  font-family: 'Muli', 'Arial', sans-serif;
+}
+
+g.tick text {
+  fill: white;
+}
+
+g.tick.months text {
+  font-weight: bold;
+}
+
+.annotation {
+  position: absolute;
+  max-width: 500px;
+  left: 50%;
+  right: 0;
+  color: white;
+  z-index: 900;
+  box-sizing: border-box;
+}
+.annotation p {
+  position: relative;
+  left: -50%;
+  padding: 15px;
+  margin: 0 0 40px;
+  background: rgb(40,36,100);
+  border: 2px solid rgb(253, 184, 19);
+}
+.annotation.lefthand {
+  left: 0;
+  width: 40%;
+  margin: 0 5px;
+}
+.annotation.lefthand p {
+  left: 0;
+}
+@media (max-width: 600px) {
+  .annotation {
+    /* width: 100%; */
+    left: 0;
+    right: 0;
+    margin: 0 50px;
+  }
+  .annotation.lefthand {
+    right: 60%;
+  }
+  .annotation p {
+    left: 0;
+    margin: 0 0 10px;
+  }
+  /* padding: 0 5px; */
+}
+
+/* SCROLLAMA STYLES */
+
+.scroll__text {
+  position: absolute;
+  left:0;
+  top:0;
+  right: 0;
+}
+.step {
+  width: 100%;
+  height: 800px;
+  z-index: -1000;
+  box-sizing: border-box;
+  background: none;
+}
+#before-freezestep {
+  height: 1000px;
+}
+#freezestep {
+  height:4000px;
+}

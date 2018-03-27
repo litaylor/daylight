@@ -11,7 +11,7 @@
 <div id="scroll">
   <div class="svgBox scroll__graphic" id="svgBox1">
     <span id="svg1-loading" class="svg-loading" style="color:white; padding:20px;">Loading...</span>
-    <svg id="svg1" height="7500"></svg>
+    <svg id="svg1" height="7500" style="position:absolute;"></svg>
   </div>
 
   <div id="svg1-fixed-header">
@@ -46,13 +46,11 @@
       .step {
         width: 100%;
         height: 800px;
-        /* background-color: rgba(255,0,0,0.4); */
         z-index: -1000;
-        /* border-top: 2px solid red; */
         box-sizing: border-box;
       }
       #before-freezestep {
-        height: 2364px;
+        height: 1000px;
       }
       #freezestep {
         height:4000px;
@@ -68,6 +66,7 @@
         color: white;
         font-family: 'Muli', 'Arial', sans-serif;
         font-weight: bold;
+        z-index: 1000;
         background-color: rgb(40,36,100); /*rgba(0,0,0,0.1);*/
       }
       .svg-left {
@@ -75,7 +74,7 @@
         width: 50%;
         box-sizing: border-box;
         float: left;
-        padding:5px 25px;
+        padding-right: 20px;
         text-align: right;
       }
       .svg-right {
@@ -83,7 +82,7 @@
         width: 50%;
         box-sizing: border-box;
         float: left;
-        padding:5px 25px;
+        padding-left: 20px;
         text-align: left;
       }
       .svgBox {
@@ -106,23 +105,26 @@
         stroke-width: 2;
       }
       .pathtext {
-        /* font-size: 125%; */
-        /* letter-spacing: 2px; */
         fill: white;
       }
       .const {
-        opacity: 0;
+        display: none;
       }
       .pathtext textPath {
-        opacity: 0;
+        display: none;
       }
 
       .chart-area.night {
         fill: rgb(40,36,100);
       }
       .chart-area.daylight {
-        opacity: 0;
+        display: none;
         fill: rgb(253, 184, 19);
+        stroke: white;
+        stroke-width: 3;
+      }
+      .chart-area.daylight.left {
+        display: block;
       }
 
       g.tick text {
@@ -139,15 +141,54 @@
         font-weight: bold;
       }
 
-      #thisdoesntexist text {
+      text.pathtext {
         /* display:inline-block; */
-        -webkit-transform:scale(2,1); /* Safari and Chrome */
-        -moz-transform:scale(2,1); /* Firefox */
-        -ms-transform:scale(2,1); /* IE 9 */
-        -o-transform:scale(2,1); /* Opera */
-        transform:scale(2,1); /* W3C */
+        -webkit-transform:scale(2.222,1); /* Safari and Chrome */
+        -moz-transform:scale(2.222,1); /* Firefox */
+        -ms-transform:scale(2.222,1); /* IE 9 */
+        -o-transform:scale(2.222,1); /* Opera */
+        transform:scale(2.222,1); /* W3C */
       }
-
+      .annotation {
+        position: absolute;
+        max-width: 500px;
+        left: 50%;
+        right: 0;
+        color: white;
+        z-index: 900;
+        box-sizing: border-box;
+      }
+      .annotation p {
+        position: relative;
+        left: -50%;
+        padding: 15px;
+        margin: 0;
+        background: rgb(40,36,100);
+        border: 2px solid rgb(253, 184, 19);
+      }
+      .annotation.lefthand {
+        left: 0;
+        width: 40%;
+        margin: 0 5px;
+      }
+      .annotation.lefthand p {
+        left: 0;
+      }
+      @media (max-width: 600px) {
+        .annotation {
+          /* width: 100%; */
+          left: 0;
+          right: 0;
+          margin: 0 5px;
+        }
+        .annotation.lefthand {
+          right: 60%;
+        }
+        .annotation p {
+          left: 0;
+        }
+        /* padding: 0 5px; */
+      }
     </style>
 
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/4.12.0/d3.min.js"></script>
@@ -156,11 +197,11 @@
     <script type="text/javascript">
       // Set graph height and margins. Width is 100% of holding container
       var customHeight = 7500;
-      var customMargins = {top: 40, right: 0, bottom: 40, left: 0};
+      var customMargins = {top: 40, right: 0, bottom: 40, left: 30};
       var data = [
-        {"standard_time":null,"date":"2018-11-01","sunrise":"7:41","sunset":"18:45","new_sunrise":"7:41","new_sunset":"18:45"},
-        {"standard_time":null,"date":"2018-11-02","sunrise":"7:41","sunset":"18:44","new_sunrise":"7:41","new_sunset":"18:44"},
-        {"standard_time":null,"date":"2018-11-03","sunrise":"7:42","sunset":"18:44","new_sunrise":"7:42","new_sunset":"18:44"},
+        // {"standard_time":null,"date":"2018-11-01","sunrise":"7:41","sunset":"18:45","new_sunrise":"7:41","new_sunset":"18:45"},
+        // {"standard_time":null,"date":"2018-11-02","sunrise":"7:41","sunset":"18:44","new_sunrise":"7:41","new_sunset":"18:44"},
+        // {"standard_time":null,"date":"2018-11-03","sunrise":"7:42","sunset":"18:44","new_sunrise":"7:42","new_sunset":"18:44"},
         {"standard_time":1,"date":"2018-11-04","sunrise":"6:43","sunset":"17:43","new_sunrise":"7:43","new_sunset":"18:43"},
         {"standard_time":1,"date":"2018-11-05","sunrise":"6:43","sunset":"17:42","new_sunrise":"7:43","new_sunset":"18:42"},
         {"standard_time":1,"date":"2018-11-06","sunrise":"6:44","sunset":"17:42","new_sunrise":"7:44","new_sunset":"18:42"},
@@ -287,28 +328,28 @@
         {"standard_time":1,"date":"2019-03-07","sunrise":"6:48","sunset":"18:33","new_sunrise":"7:48","new_sunset":"19:33"},
         {"standard_time":1,"date":"2019-03-08","sunrise":"6:47","sunset":"18:34","new_sunrise":"7:47","new_sunset":"19:34"},
         {"standard_time":1,"date":"2019-03-09","sunrise":"6:45","sunset":"18:35","new_sunrise":"7:45","new_sunset":"19:35"},
-        {"standard_time":1,"date":"2019-03-10","sunrise":"6:44","sunset":"18:35","new_sunrise":"7:44","new_sunset":"19:35"},
-        {"standard_time":null,"date":"2019-03-11","sunrise":"7:43","sunset":"19:36","new_sunrise":"7:43","new_sunset":"19:36"},
-        {"standard_time":null,"date":"2019-03-12","sunrise":"7:42","sunset":"19:36","new_sunrise":"7:42","new_sunset":"19:36"},
-        {"standard_time":null,"date":"2019-03-13","sunrise":"7:41","sunset":"19:37","new_sunrise":"7:41","new_sunset":"19:37"},
-        {"standard_time":null,"date":"2019-03-14","sunrise":"7:40","sunset":"19:37","new_sunrise":"7:40","new_sunset":"19:37"},
-        {"standard_time":null,"date":"2019-03-15","sunrise":"7:39","sunset":"19:38","new_sunrise":"7:39","new_sunset":"19:38"},
-        {"standard_time":null,"date":"2019-03-16","sunrise":"7:38","sunset":"19:38","new_sunrise":"7:38","new_sunset":"19:38"},
-        {"standard_time":null,"date":"2019-03-17","sunrise":"7:37","sunset":"19:39","new_sunrise":"7:37","new_sunset":"19:39"},
-        {"standard_time":null,"date":"2019-03-18","sunrise":"7:35","sunset":"19:40","new_sunrise":"7:35","new_sunset":"19:40"},
-        {"standard_time":null,"date":"2019-03-19","sunrise":"7:34","sunset":"19:40","new_sunrise":"7:34","new_sunset":"19:40"},
-        {"standard_time":null,"date":"2019-03-20","sunrise":"7:33","sunset":"19:41","new_sunrise":"7:33","new_sunset":"19:41"},
-        {"standard_time":null,"date":"2019-03-21","sunrise":"7:32","sunset":"19:41","new_sunrise":"7:32","new_sunset":"19:41"},
-        {"standard_time":null,"date":"2019-03-22","sunrise":"7:31","sunset":"19:42","new_sunrise":"7:31","new_sunset":"19:42"},
-        {"standard_time":null,"date":"2019-03-23","sunrise":"7:30","sunset":"19:42","new_sunrise":"7:30","new_sunset":"19:42"},
-        {"standard_time":null,"date":"2019-03-24","sunrise":"7:29","sunset":"19:43","new_sunrise":"7:29","new_sunset":"19:43"},
-        {"standard_time":null,"date":"2019-03-25","sunrise":"7:28","sunset":"19:43","new_sunrise":"7:28","new_sunset":"19:43"},
-        {"standard_time":null,"date":"2019-03-26","sunrise":"7:26","sunset":"19:44","new_sunrise":"7:26","new_sunset":"19:44"},
-        {"standard_time":null,"date":"2019-03-27","sunrise":"7:25","sunset":"19:44","new_sunrise":"7:25","new_sunset":"19:44"},
-        {"standard_time":null,"date":"2019-03-28","sunrise":"7:24","sunset":"19:45","new_sunrise":"7:24","new_sunset":"19:45"},
-        {"standard_time":null,"date":"2019-03-29","sunrise":"7:23","sunset":"19:46","new_sunrise":"7:23","new_sunset":"19:46"},
-        {"standard_time":null,"date":"2019-03-30","sunrise":"7:22","sunset":"19:46","new_sunrise":"7:22","new_sunset":"19:46"},
-        {"standard_time":null,"date":"2019-03-31","sunrise":"7:21","sunset":"19:47","new_sunrise":"7:21","new_sunset":"19:47"}
+        {"standard_time":1,"date":"2019-03-10","sunrise":"6:44","sunset":"18:35","new_sunrise":"7:44","new_sunset":"19:35"}
+        // {"standard_time":null,"date":"2019-03-11","sunrise":"7:43","sunset":"19:36","new_sunrise":"7:43","new_sunset":"19:36"},
+        // {"standard_time":null,"date":"2019-03-12","sunrise":"7:42","sunset":"19:36","new_sunrise":"7:42","new_sunset":"19:36"},
+        // {"standard_time":null,"date":"2019-03-13","sunrise":"7:41","sunset":"19:37","new_sunrise":"7:41","new_sunset":"19:37"},
+        // {"standard_time":null,"date":"2019-03-14","sunrise":"7:40","sunset":"19:37","new_sunrise":"7:40","new_sunset":"19:37"},
+        // {"standard_time":null,"date":"2019-03-15","sunrise":"7:39","sunset":"19:38","new_sunrise":"7:39","new_sunset":"19:38"},
+        // {"standard_time":null,"date":"2019-03-16","sunrise":"7:38","sunset":"19:38","new_sunrise":"7:38","new_sunset":"19:38"},
+        // {"standard_time":null,"date":"2019-03-17","sunrise":"7:37","sunset":"19:39","new_sunrise":"7:37","new_sunset":"19:39"},
+        // {"standard_time":null,"date":"2019-03-18","sunrise":"7:35","sunset":"19:40","new_sunrise":"7:35","new_sunset":"19:40"},
+        // {"standard_time":null,"date":"2019-03-19","sunrise":"7:34","sunset":"19:40","new_sunrise":"7:34","new_sunset":"19:40"},
+        // {"standard_time":null,"date":"2019-03-20","sunrise":"7:33","sunset":"19:41","new_sunrise":"7:33","new_sunset":"19:41"},
+        // {"standard_time":null,"date":"2019-03-21","sunrise":"7:32","sunset":"19:41","new_sunrise":"7:32","new_sunset":"19:41"},
+        // {"standard_time":null,"date":"2019-03-22","sunrise":"7:31","sunset":"19:42","new_sunrise":"7:31","new_sunset":"19:42"},
+        // {"standard_time":null,"date":"2019-03-23","sunrise":"7:30","sunset":"19:42","new_sunrise":"7:30","new_sunset":"19:42"},
+        // {"standard_time":null,"date":"2019-03-24","sunrise":"7:29","sunset":"19:43","new_sunrise":"7:29","new_sunset":"19:43"},
+        // {"standard_time":null,"date":"2019-03-25","sunrise":"7:28","sunset":"19:43","new_sunrise":"7:28","new_sunset":"19:43"},
+        // {"standard_time":null,"date":"2019-03-26","sunrise":"7:26","sunset":"19:44","new_sunrise":"7:26","new_sunset":"19:44"},
+        // {"standard_time":null,"date":"2019-03-27","sunrise":"7:25","sunset":"19:44","new_sunrise":"7:25","new_sunset":"19:44"},
+        // {"standard_time":null,"date":"2019-03-28","sunrise":"7:24","sunset":"19:45","new_sunrise":"7:24","new_sunset":"19:45"},
+        // {"standard_time":null,"date":"2019-03-29","sunrise":"7:23","sunset":"19:46","new_sunrise":"7:23","new_sunset":"19:46"},
+        // {"standard_time":null,"date":"2019-03-30","sunrise":"7:22","sunset":"19:46","new_sunrise":"7:22","new_sunset":"19:46"},
+        // {"standard_time":null,"date":"2019-03-31","sunrise":"7:21","sunset":"19:47","new_sunrise":"7:21","new_sunset":"19:47"}
       ];
 
       $(document).ready(function(){
@@ -317,7 +358,8 @@
 
       $(window).on('resize', function(){
         $('#svg1').empty();
-        var boundWidth = d3.select("#svgBox1").node().getBoundingClientRect().width;
+        var board = d3.select("#svgBox1");
+        var boundWidth = board.node().getBoundingClientRect().width;
         d3.select("#svgBox1").select("svg").attr("width",boundWidth).attr("height",customHeight).style("margin","0px");
 
         var svg = d3.select("#svg1"),
@@ -328,7 +370,7 @@
 
 
         var group = {
-          left: g.append("g").attr("id","pane-left").attr("transform", "scale(0.45 1)"),
+          left: g.append("g").attr("id","pane-left").attr("transform", "scale(0.45 1) translate("+(2.222)*margin.left+",0)"),
           right: g.append("g").attr("id","pane-right").attr("transform", "scale(0.45 1) translate("+(11/9)*width+")"),
         };
 
@@ -336,21 +378,12 @@
         var parseHours = d3.timeParse("%H:%M");
 
         var xScale = d3.scaleTime().domain([parseTime(data[0].date),parseTime(data[data.length-1].date)]).range([0, width]);
-        var yScale = d3.scaleTime().domain([parseHours('0:00'),parseHours('23:59')]).range([0, height]);
+        var yScale = d3.scaleTime().domain([parseHours('5:00'),parseHours('23:59')]).range([0, height]);
 
 
         $('.svg-loading').remove();
 
 
-        // CENTER LINE
-
-        // g.append('line')
-        //   .attr('x1',width/2)
-        //   .attr('x2',width/2)
-        //   .attr('y1',0)
-        //   .attr('y2',height)
-        //   .attr('stroke-width','4')
-        //   .attr('stroke','white');
 
         function drawArea(y0, y1, theClass, side) {
           var area = d3.area()
@@ -409,7 +442,7 @@
               return yScale(parseHours(y));
             });
 
-          g.append('path')
+          group.left.append('path')
           .datum(data)
           .attr('stroke','white')
           .attr('stroke-width', 3)
@@ -419,18 +452,33 @@
           .attr('d', line);
         }
 
+        function drawPoint(name, x, y, side) {
+          group[side].append('circle')
+            .attr('stroke','white')
+            .attr('stroke-width',3)
+            .attr('fill','none')
+            .attr('r', 8)
+            .attr('cx',0.45*xScale(parseTime(x)))
+            .attr('cy',yScale(parseHours(y)))
+            .attr('transform','scale(2.222,1)')
+            .attr('class','point point-'+name);
+        }
+
+
         drawArea('const-0:00','sunrise','night morning left','left');
         drawArea('sunrise','sunset','daylight left','left');
         drawArea('sunset','const-23:59','night evening left','left');
 
-        drawArea('const-0:00','new_sunrise','night morning left','right');
-        drawArea('new_sunrise','new_sunset','daylight right','right');
-        drawArea('new_sunset','const-23:59','night evening left','right');
+        // drawArea('const-0:00','new_sunrise','night morning left','right');
+        drawArea('new_sunrise','new_sunset','daylight left new','left');
+        // drawArea('new_sunset','const-23:59','night evening left','right');
 
-        drawLine('sunrise');
-        drawLine('new_sunrise');
-        drawLine('sunset');
-        drawLine('new_sunset');
+        drawPoint('dec1sunrise','2018-12-01','7:03','left');
+
+        // drawLine('sunrise');
+        // drawLine('new_sunrise');
+        // drawLine('sunset');
+        // drawLine('new_sunset');
 
 
         var labelTimes = [
@@ -460,22 +508,38 @@
         for (var i = 0; i < labelTimes.length; i++) {
           drawConst(labelTimes[i].name, labelTimes[i].time);
 
-          g.append('text')
+          group.left.append('text')
           .attr('class','pathtext')
           .attr('dy', labelTimes[i].dy)
           .append('textPath')
           .attr('class','pathtext-'+labelTimes[i].name)
           .attr('xlink:href','#path-'+labelTimes[i].name)
-          .style('text-anchor','middle')
-          .attr('startOffset','50%')
+          .style('text-anchor','start')
+          .attr('startOffset','0%')
           .text(labelTimes[i].text);
 
 
         }
 
+        g.append('line')
+          .attr('x1',0)
+          .attr('x2',1)
+          .attr('y1',yScale(parseHours('7:25')))
+          .attr('y2', yScale(parseHours('7:25')))
+          .attr('id','testRect')
+          .attr('stroke-width',0)
+          .call(function() {
+            coordinates = $('#testRect').offset();
+          });
+
+        $('#testRect').remove();
+        console.log('x: '+coordinates.top);
+
+        $('#before-freezestep').css({'height':coordinates.top+'px'})
+
         g.append('g')
           .attr('class','tick hours')
-          .attr('transform', 'translate('+width/2+', 0)')
+          // .attr('transform', 'translate('+width/2+', 0)')
           .call(d3.axisLeft(yScale).ticks(96).tickFormat(d3.timeFormat("%-I:%M")));
 
         d3.selectAll('g.tick.hours g.tick text')
@@ -490,37 +554,54 @@
           group['left'].append('g')
             .attr('class','tick months')
             .attr('transform', 'translate(0,' + yScale(parseHours(axisTime)) + ')')
-            .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%b')).tickSize(height/24));
+            .call(d3.axisBottom(xScale).ticks(4).tickFormat(d3.timeFormat('%b')).tickSize(height/19));
 
-          group['right'].append('g')
-            .attr('class','tick months')
-            .attr('transform', 'translate(0,' + yScale(parseHours(axisTime)) + ')')
-            .call(d3.axisBottom(xScale).tickFormat(d3.timeFormat('%b')).tickSize(height/24));
+          // group['right'].append('g')
+          //   .attr('class','tick months')
+          //   .attr('transform', 'translate(0,' + yScale(parseHours(axisTime)) + ')')
+          //   .call(d3.axisBottom(xScale).ticks(4).tickFormat(d3.timeFormat('%b')).tickSize(height/19));
         }
 
 
-        function drawNote(noteText, noteTime) {
-          var text = d3.select('#pane-right').append('text')
-            .attr('class','svgNote')
-            .attr('fill','white')
-            .attr('x',5)
-            .attr('y',yScale(parseHours(noteTime)))
-            .text(noteText)
-            .attr('transform','scale(2.222,1) translate('+(width/(10*2.222))+',0)')
-            .attr('dy',0);
-          text.call(wrapText,(width*0.45)-35)
-            .call(addBackgroundBox, yScale(parseHours(noteTime)));
+        function drawNote(note) {
+          yVal = yScale(parseHours(note.startTime));
+          console.log(yVal);
+          var coordinates = {};
+          g.append('line')
+            .attr('x1',0)
+            .attr('x2',1)
+            .attr('y1',yVal)
+            .attr('y2', yVal)
+            .attr('id','testRect')
+            .attr('stroke-width',0)
+            .call(function() {
+              coordinates = $('#testRect').offset();
+            });
+
+          $('#testRect').remove();
+
+          board.append('div')
+            .attr('class','annotation '+note.class)
+            .style('top', coordinates.top + 'px')
+            .html('<p>' + note.text + '</p>');
         }
 
         var notesData = [
-          // {
-          //   text: 'If Florida were to adopt year-round Daylight Saving Time, the sun would rise an hour later than normal between early November and early March.',
-          //   time: '6:30'
-          // }
+          {
+            startTime: '5:20',
+            class: 'intro full',
+            id: 'starting-note',
+            text: 'Florida is asking the federal government to let the state stay on Daylight Saving Time year-round. That would shift the state&rsquo;s day by an hour, but only between early November and early March.'
+          }, {
+            startTime: '6:05',
+            class: 'lefthand',
+            id: 'left-whatis-note',
+            text: 'The left half of this graph shows sunrise and sunset times for this coming winter. The sun will rise on <b>Dec. 1, 2018,</b> at <b>7:03 a.m.</b>'
+          }
         ];
 
         for (var i = 0; i < notesData.length; i++) {
-          drawNote(notesData[i].text, notesData[i].time);
+          drawNote(notesData[i]);
         }
 
         d3.selectAll('g.tick.months g.tick text')
@@ -617,7 +698,7 @@
     	function handleStepEnter(response) {
         if (response.index==$('#before-freezestep').prevAll().length) {
           if (response.direction=='up') {
-            console.log('fire');
+            // console.log('fire');
             $('.scroll__graphic').css({'margin-top':'0','top':'0'});
           }
         }
@@ -645,9 +726,10 @@
           // console.log(response.progress);
           // console.log();
           for (var i = 0; i < revealElements.length; i++) {
-            console.log(response.progress, revealElements[i].trigger, revealElements[i].element);
+            // console.log(response.progress, revealElements[i].trigger, revealElements[i].element);
             if (response.progress>=revealElements[i].trigger) {
-              $(revealElements[i].element).css({'opacity':'1'});
+              $(revealElements[i].element).fadeIn('slow');
+              // $(revealElements[i].element).css({'opacity':'1'});
             }
           }
         }
